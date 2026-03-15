@@ -1,14 +1,19 @@
 package cmd
 
 import (
+	"embed"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
+//go:embed ../VERSION
+var versionFile string
+
 var (
-	version   = "dev"
+	version   = strings.TrimSpace(versionFile)
 	commit    = "unknown"
 	buildDate = "unknown"
 )
