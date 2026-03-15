@@ -28,11 +28,7 @@ type Card struct {
 	Number   int      `yaml:"number"`
 	Keywords []string `yaml:"keywords"`
 	AssetURL string   `yaml:"asset_url"`
-	Rank     string   `yaml:"rank"`
-	Suit     string   `yaml:"suit"`
-	Planet   string   `yaml:"planet"`
-	Element  string   `yaml:"element"`
-	Sign     []string `yaml:"sign"`
+	Fields   map[string]interface{} `yaml:",inline"`
 	Body     string   `yaml:"-"`
 	Filename string   `yaml:"-"`
 }

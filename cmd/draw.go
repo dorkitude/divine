@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -134,22 +135,7 @@ func runDraw(cmd *cobra.Command, args []string) error {
 			content.WriteString(keywordStyle.Render(wrapText(strings.Join(cwd.card.Keywords, " | "), contentWidth)) + "\n")
 		}
 
-		var details []string
-		if cwd.card.Rank != "" {
-			details = append(details, fmt.Sprintf("rank: %s", cwd.card.Rank))
-		}
-		if cwd.card.Suit != "" {
-			details = append(details, fmt.Sprintf("suit: %s", cwd.card.Suit))
-		}
-		if cwd.card.Planet != "" {
-			details = append(details, fmt.Sprintf("planet: %s", cwd.card.Planet))
-		}
-		if cwd.card.Element != "" {
-			details = append(details, fmt.Sprintf("element: %s", cwd.card.Element))
-		}
-		if len(cwd.card.Sign) > 0 {
-			details = append(details, fmt.Sprintf("sign: %s", strings.Join(cwd.card.Sign, ", ")))
-		}
+		details := cardDetails(cwd.card)
 		if len(details) > 0 {
 			content.WriteString(wrapText(strings.Join(details, "\n"), contentWidth) + "\n")
 		}
@@ -236,4 +222,54 @@ func wrapLine(line string, width int) []string {
 
 	out = append(out, current)
 	return out
+}
+
+func cardDetails(card deck.Card) []string {
+	if len(card.Fields) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(card.Fields))
+	for k := range card.Fields {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	details := make([]string, 0, len(keys))
+	for _, k := range keys {
+		v := formatDetailValue(card.Fields[k])
+		if v == "" {
+			continue
+		}
+		details = append(details, fmt.Sprintf("%s: %s", k, v))
+	}
+	return details
+}
+
+func formatDetailValue(v interface{}) string {
+	switch t := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return strings.TrimSpace(t)
+	case int, int8, int16, int32, int64:
+		return fmt.Sprintf("%d", t)
+	case uint, uint8, uint16, uint32, uint64:
+		return fmt.Sprintf("%d", t)
+	case float32, float64, bool:
+		return fmt.Sprintf("%v", t)
+	case []string:
+		return strings.Join(t, ", ")
+	case []interface{}:
+		parts := make([]string, 0, len(t))
+		for _, item := range t {
+			s := formatDetailValue(item)
+			if s != "" {
+				parts = append(parts, s)
+			}
+		}
+		return strings.Join(parts, ", ")
+	default:
+		return strings.TrimSpace(fmt.Sprintf("%v", t))
+	}
 }
