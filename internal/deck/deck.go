@@ -3,11 +3,13 @@ package deck
 import (
 	"bytes"
 	"fmt"
+	"io/fs"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
 
+	deckdata "github.com/alan-botts/divine/decks"
 	"gopkg.in/yaml.v3"
 )
 
@@ -35,15 +37,25 @@ type Card struct {
 
 // Deck is a loaded deck with metadata and cards.
 type Deck struct {
-	DirName string
-	Meta    IndexMeta
-	Cards   []Card
-	Path    string
+	DirName     string
+	Meta        IndexMeta
+	Cards       []Card
+	Path        string
+	HasLicense  bool
 }
 
-// LoadAll discovers and loads all decks from the given decks directory.
-func LoadAll(decksDir string) ([]Deck, error) {
-	entries, err := os.ReadDir(decksDir)
+// LoadAll discovers and loads all embedded decks bundled in the binary.
+func LoadAll() ([]Deck, error) {
+	return loadAllFromFS(deckdata.FS, ".")
+}
+
+// LoadAllFromDir discovers and loads all decks from a filesystem directory.
+func LoadAllFromDir(decksDir string) ([]Deck, error) {
+	return loadAllFromFS(os.DirFS(decksDir), ".")
+}
+
+func loadAllFromFS(fsys fs.FS, root string) ([]Deck, error) {
+	entries, err := fs.ReadDir(fsys, root)
 	if err != nil {
 		return nil, fmt.Errorf("reading decks directory: %w", err)
 	}
@@ -53,7 +65,7 @@ func LoadAll(decksDir string) ([]Deck, error) {
 		if !entry.IsDir() {
 			continue
 		}
-		d, err := LoadDeck(filepath.Join(decksDir, entry.Name()))
+		d, err := loadDeckFromFS(fsys, filepath.Join(root, entry.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("loading deck %s: %w", entry.Name(), err)
 		}
@@ -62,8 +74,7 @@ func LoadAll(decksDir string) ([]Deck, error) {
 	return decks, nil
 }
 
-// LoadDeck loads a single deck from the given directory.
-func LoadDeck(dir string) (Deck, error) {
+func loadDeckFromFS(fsys fs.FS, dir string) (Deck, error) {
 	d := Deck{
 		DirName: filepath.Base(dir),
 		Path:    dir,
@@ -71,7 +82,7 @@ func LoadDeck(dir string) (Deck, error) {
 
 	// Parse _deck.yaml
 	indexPath := filepath.Join(dir, "_deck.yaml")
-	indexData, err := os.ReadFile(indexPath)
+	indexData, err := fs.ReadFile(fsys, indexPath)
 	if err != nil {
 		return d, fmt.Errorf("reading _deck.yaml: %w", err)
 	}
@@ -80,7 +91,7 @@ func LoadDeck(dir string) (Deck, error) {
 	}
 
 	// Find and parse card files
-	entries, err := os.ReadDir(dir)
+	entries, err := fs.ReadDir(fsys, dir)
 	if err != nil {
 		return d, fmt.Errorf("reading deck directory: %w", err)
 	}
@@ -89,11 +100,15 @@ func LoadDeck(dir string) (Deck, error) {
 		if entry.IsDir() || !isCardFile(entry.Name()) {
 			continue
 		}
-		card, err := ParseCard(filepath.Join(dir, entry.Name()))
+		card, err := parseCardFromFS(fsys, filepath.Join(dir, entry.Name()))
 		if err != nil {
 			return d, fmt.Errorf("parsing card %s: %w", entry.Name(), err)
 		}
 		d.Cards = append(d.Cards, card)
+	}
+
+	if _, err := fs.Stat(fsys, filepath.Join(dir, "_LICENSE")); err == nil {
+		d.HasLicense = true
 	}
 
 	return d, nil
@@ -103,13 +118,25 @@ func isCardFile(name string) bool {
 	return strings.HasSuffix(name, ".md") || strings.HasSuffix(name, ".mdx")
 }
 
+func parseCardFromFS(fsys fs.FS, path string) (Card, error) {
+	data, err := fs.ReadFile(fsys, path)
+	if err != nil {
+		return Card{}, fmt.Errorf("reading file: %w", err)
+	}
+
+	return parseCardData(data, path)
+}
+
 // ParseCard parses a card markdown file with YAML frontmatter.
 func ParseCard(path string) (Card, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return Card{}, fmt.Errorf("reading file: %w", err)
 	}
+	return parseCardData(data, path)
+}
 
+func parseCardData(data []byte, path string) (Card, error) {
 	var card Card
 	card.Filename = filepath.Base(path)
 
@@ -149,7 +176,7 @@ func (d *Deck) Validate() []string {
 	}
 
 	// Check _LICENSE exists
-	if _, err := os.Stat(filepath.Join(d.Path, "_LICENSE")); os.IsNotExist(err) {
+	if !d.HasLicense {
 		errs = append(errs, "missing _LICENSE file")
 	}
 
@@ -181,6 +208,7 @@ func (d *Deck) DrawRandom(n int) []Card {
 }
 
 // FindDecksDir locates the decks/ directory relative to the executable or CWD.
+// Deprecated: commands now load decks from embedded data; this is retained for tooling.
 func FindDecksDir() (string, error) {
 	// Try relative to executable
 	exe, err := os.Executable()

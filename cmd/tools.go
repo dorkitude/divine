@@ -25,12 +25,7 @@ func init() {
 }
 
 func runValidateDecks(cmd *cobra.Command, args []string) error {
-	decksDir, err := deck.FindDecksDir()
-	if err != nil {
-		return err
-	}
-
-	decks, err := deck.LoadAll(decksDir)
+	decks, err := deck.LoadAll()
 	if err != nil {
 		return fmt.Errorf("failed to load decks: %w", err)
 	}

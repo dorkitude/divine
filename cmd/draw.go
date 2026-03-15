@@ -38,18 +38,13 @@ func init() {
 func runDraw(cmd *cobra.Command, args []string) error {
 	rand.Seed(time.Now().UnixNano())
 
-	decksDir, err := deck.FindDecksDir()
-	if err != nil {
-		return err
-	}
-
-	decks, err := deck.LoadAll(decksDir)
+	decks, err := deck.LoadAll()
 	if err != nil {
 		return err
 	}
 
 	if len(decks) == 0 {
-		return fmt.Errorf("no decks found in %s", decksDir)
+		return fmt.Errorf("no decks available in embedded data")
 	}
 
 	// Filter to specific deck if requested
