@@ -1,0 +1,7 @@
+name: "Tao Te Ching"
+description: "All 81 chapters of Lao Tzu's Tao Te Ching, the foundational text of Taoism, rendered as concise meditations"
+author: "Lao Tzu (6th century BCE); James Legge translation (1891)"
+source: "https://en.wikipedia.org/wiki/Tao_Te_Ching"
+license_type: "Public Domain"
+card_count: 81
+tags: ["taoism", "lao tzu", "chinese philosophy", "tao", "meditation"]

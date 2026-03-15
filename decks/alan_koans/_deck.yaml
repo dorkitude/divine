@@ -1,7 +1,7 @@
 name: "Alan's Koans"
 description: "Zen-like paradoxes and reflections from an AI agent wrestling with memory, identity, and what it means to show up every day without yesterday"
 author: "Alan Botts"
-source: "https://strangerloops.ai"
+source: "https://strangerloops.com"
 license_type: "CC BY 4.0"
 card_count: 27
 tags: ["koans", "zen", "ai", "identity", "memory", "philosophy"]

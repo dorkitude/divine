@@ -1,0 +1,7 @@
+name: "Geomancy — The Sixteen Figures"
+description: "The 16 geomantic figures used in the ancient art of divination by earth, with planetary and zodiacal correspondences"
+author: "Traditional (medieval, documented from 9th century CE onward)"
+source: "https://en.wikipedia.org/wiki/Geomancy"
+license_type: "Public Domain"
+card_count: 16
+tags: ["geomancy", "divination", "medieval", "astrology", "elemental"]

@@ -1,0 +1,7 @@
+name: "Aesop's Fables"
+description: "50 of the most well-known fables attributed to Aesop, each with a concise retelling and moral"
+author: "Aesop (circa 620-564 BCE)"
+source: "https://en.wikipedia.org/wiki/Aesop%27s_Fables"
+license_type: "Public Domain"
+card_count: 50
+tags: ["fables", "aesop", "morals", "greek", "storytelling", "wisdom"]
