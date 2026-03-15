@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/alan-botts/divine/internal/deck"
 	"github.com/charmbracelet/lipgloss"
@@ -89,14 +91,17 @@ func runDraw(cmd *cobra.Command, args []string) error {
 	// Styles
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("212"))
+		Foreground(lipgloss.Color("219"))
 
 	deckStyle := lipgloss.NewStyle().
 		Italic(true).
-		Foreground(lipgloss.Color("243"))
+		Foreground(lipgloss.Color("248"))
 
 	keywordStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("178"))
+		Foreground(lipgloss.Color("180"))
+
+	dividerStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("240"))
 
 	borderStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
@@ -104,19 +109,22 @@ func runDraw(cmd *cobra.Command, args []string) error {
 		Padding(1, 2).
 		MarginBottom(1)
 
+	contentWidth := terminalContentWidth()
+
 	for i, idx := range indices {
 		cwd := pool[idx]
 
 		var content strings.Builder
-		content.WriteString(titleStyle.Render(cwd.card.Title) + "\n")
-		content.WriteString(deckStyle.Render(cwd.deckName) + "\n")
+		content.WriteString(titleStyle.Render(wrapText(cwd.card.Title, contentWidth)) + "\n")
+		content.WriteString(deckStyle.Render("from " + cwd.deckName) + "\n")
 
 		if len(cwd.card.Keywords) > 0 {
-			content.WriteString(keywordStyle.Render(strings.Join(cwd.card.Keywords, " | ")) + "\n")
+			content.WriteString(keywordStyle.Render(wrapText(strings.Join(cwd.card.Keywords, " | "), contentWidth)) + "\n")
 		}
 
+		content.WriteString(dividerStyle.Render(strings.Repeat("─", contentWidth)) + "\n")
 		content.WriteString("\n")
-		content.WriteString(cwd.card.Body)
+		content.WriteString(wrapText(cwd.card.Body, contentWidth))
 
 		fmt.Println(borderStyle.Render(content.String()))
 
@@ -126,4 +134,74 @@ func runDraw(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func terminalContentWidth() int {
+	const (
+		defaultTerminalWidth = 100
+		minContentWidth      = 40
+		maxContentWidth      = 88
+		innerOverhead        = 6 // 2 border + 4 horizontal padding
+	)
+
+	cols := defaultTerminalWidth
+	if raw := strings.TrimSpace(os.Getenv("COLUMNS")); raw != "" {
+		if n, err := strconv.Atoi(raw); err == nil && n > 0 {
+			cols = n
+		}
+	}
+
+	width := cols - innerOverhead
+	if width < minContentWidth {
+		return minContentWidth
+	}
+	if width > maxContentWidth {
+		return maxContentWidth
+	}
+	return width
+}
+
+func wrapText(text string, width int) string {
+	if width <= 0 || text == "" {
+		return text
+	}
+
+	lines := strings.Split(text, "\n")
+	wrapped := make([]string, 0, len(lines))
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			wrapped = append(wrapped, "")
+			continue
+		}
+		wrapped = append(wrapped, wrapLine(line, width)...)
+	}
+
+	return strings.Join(wrapped, "\n")
+}
+
+func wrapLine(line string, width int) []string {
+	words := strings.Fields(line)
+	if len(words) == 0 {
+		return []string{""}
+	}
+
+	var out []string
+	current := words[0]
+	currentLen := utf8.RuneCountInString(current)
+
+	for _, w := range words[1:] {
+		wLen := utf8.RuneCountInString(w)
+		if currentLen+1+wLen <= width {
+			current += " " + w
+			currentLen += 1 + wLen
+			continue
+		}
+		out = append(out, current)
+		current = w
+		currentLen = wLen
+	}
+
+	out = append(out, current)
+	return out
 }
