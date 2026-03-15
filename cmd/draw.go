@@ -71,13 +71,18 @@ func runDraw(cmd *cobra.Command, args []string) error {
 
 	// Collect all cards with deck info
 	type cardWithDeck struct {
-		card     deck.Card
-		deckName string
+		card       deck.Card
+		deckName   string
+		deckAuthor string
 	}
 	var pool []cardWithDeck
 	for _, d := range decks {
 		for _, c := range d.Cards {
-			pool = append(pool, cardWithDeck{card: c, deckName: d.Meta.Name})
+			pool = append(pool, cardWithDeck{
+				card:       c,
+				deckName:   d.Meta.Name,
+				deckAuthor: d.Meta.Author,
+			})
 		}
 	}
 
@@ -89,7 +94,10 @@ func runDraw(cmd *cobra.Command, args []string) error {
 	indices := rand.Perm(len(pool))[:drawCount]
 
 	// Styles
-	titleStyle := lipgloss.NewStyle().
+	titleBoxStyle := lipgloss.NewStyle().
+		Border(lipgloss.DoubleBorder()).
+		BorderForeground(lipgloss.Color("111")).
+		Padding(0, 1).
 		Bold(true).
 		Foreground(lipgloss.Color("219"))
 
@@ -115,8 +123,12 @@ func runDraw(cmd *cobra.Command, args []string) error {
 		cwd := pool[idx]
 
 		var content strings.Builder
-		content.WriteString(titleStyle.Render(wrapText(cwd.card.Title, contentWidth)) + "\n")
-		content.WriteString(deckStyle.Render("from " + cwd.deckName) + "\n")
+		titleWidth := contentWidth - 4
+		if titleWidth < 20 {
+			titleWidth = 20
+		}
+		content.WriteString(titleBoxStyle.Render(wrapText(cwd.card.Title, titleWidth)) + "\n")
+		content.WriteString(deckStyle.Render(fmt.Sprintf("from %s - by %s", cwd.deckName, cwd.deckAuthor)) + "\n")
 
 		if len(cwd.card.Keywords) > 0 {
 			content.WriteString(keywordStyle.Render(wrapText(strings.Join(cwd.card.Keywords, " | "), contentWidth)) + "\n")
