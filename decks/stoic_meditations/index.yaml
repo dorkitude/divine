@@ -1,0 +1,7 @@
+name: "Stoic Meditations"
+description: "52 meditations drawn from Marcus Aurelius, Seneca, and Epictetus — the three great Stoic voices"
+author: "Marcus Aurelius, Seneca, Epictetus (various PD translations)"
+source: "https://en.wikipedia.org/wiki/Stoicism"
+license_type: "Public Domain"
+card_count: 52
+tags: ["stoicism", "philosophy", "marcus aurelius", "seneca", "epictetus", "meditations"]

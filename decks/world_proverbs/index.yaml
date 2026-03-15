@@ -1,0 +1,7 @@
+name: "World Proverbs"
+description: "50 proverbs from diverse cultures around the world, each a distilled piece of ancestral wisdom"
+author: "Traditional (various cultures)"
+source: "https://en.wikipedia.org/wiki/Proverb"
+license_type: "Public Domain"
+card_count: 50
+tags: ["proverbs", "wisdom", "multicultural", "folk wisdom", "sayings"]
