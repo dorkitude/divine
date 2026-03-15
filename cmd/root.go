@@ -18,7 +18,7 @@ var rootCmd = &cobra.Command{
 	Use:   "divine",
 	Short: "A general-purpose divination CLI",
 	Long:  "Draw cards from tarot, I Ching, creative prompts, and more.",
-	Version: version,
+	Version: "0.0.2",
 }
 
 func Execute() {
@@ -32,6 +32,7 @@ func init() {
 	if storedVersion := defaultVersionFromFile(); storedVersion != "" {
 		version = storedVersion
 	}
+	rootCmd.Version = version
 
 	rootCmd.SetVersionTemplate("divine {{.Version}}\n")
 	rootCmd.AddCommand(versionCmd)
