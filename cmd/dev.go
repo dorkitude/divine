@@ -42,12 +42,12 @@ func runIncrementVersion(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("empty version file: %s", versionPath)
 	}
 
-	major, minor, patch, err := parseSemVer(current)
+	major, minor, patch, patchWidth, err := parseSemVer(current)
 	if err != nil {
 		return err
 	}
 
-	nextVersion := fmt.Sprintf("%d.%d.%d", major, minor, patch+1)
+	nextVersion := fmt.Sprintf("%d.%d.%0*d", major, minor, patchWidth, patch+1)
 	if err := os.WriteFile(versionPath, []byte(nextVersion+"\n"), 0o644); err != nil {
 		return fmt.Errorf("write version file: %w", err)
 	}
@@ -77,24 +77,26 @@ func findVersionFile() (string, error) {
 	return "", fmt.Errorf("VERSION file not found in working tree (checked up to 6 parent directories)")
 }
 
-func parseSemVer(versionText string) (int, int, int, error) {
+func parseSemVer(versionText string) (int, int, int, int, error) {
 	parts := strings.Split(versionText, ".")
 	if len(parts) != 3 {
-		return 0, 0, 0, fmt.Errorf("expected version format MAJOR.MINOR.PATCH, got %q", versionText)
+		return 0, 0, 0, 0, fmt.Errorf("expected version format MAJOR.MINOR.PATCH, got %q", versionText)
 	}
 
 	major, err := strconv.Atoi(parts[0])
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("invalid major version %q: %w", parts[0], err)
+		return 0, 0, 0, 0, fmt.Errorf("invalid major version %q: %w", parts[0], err)
 	}
 	minor, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("invalid minor version %q: %w", parts[1], err)
+		return 0, 0, 0, 0, fmt.Errorf("invalid minor version %q: %w", parts[1], err)
 	}
 	patch, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("invalid patch version %q: %w", parts[2], err)
+		return 0, 0, 0, 0, fmt.Errorf("invalid patch version %q: %w", parts[2], err)
 	}
 
-	return major, minor, patch, nil
+	patchWidth := len(strings.TrimSpace(parts[2]))
+
+	return major, minor, patch, patchWidth, nil
 }

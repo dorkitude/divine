@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	version   = "0.0.2"
+	version   = "0.1.001"
 	commit    = "unknown"
 	buildDate = "unknown"
 )
@@ -18,7 +18,7 @@ var rootCmd = &cobra.Command{
 	Use:   "divine",
 	Short: "A general-purpose divination CLI",
 	Long:  "Draw cards from tarot, I Ching, creative prompts, and more.",
-	Version: "0.0.2",
+	Version: "0.1.001",
 }
 
 func Execute() {
