@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 var devCmd = &cobra.Command{
@@ -96,4 +98,3 @@ func parseSemVer(versionText string) (int, int, int, error) {
 
 	return major, minor, patch, nil
 }
-
