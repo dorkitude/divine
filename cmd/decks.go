@@ -34,7 +34,7 @@ func runDecks(cmd *cobra.Command, args []string) error {
 	metaStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("243"))
 
 	for _, d := range decks {
-		fmt.Println(nameStyle.Render(d.Meta.Name))
+		fmt.Println(nameStyle.Render(fmt.Sprintf("%s: %s", d.DirName, d.Meta.Name)))
 		fmt.Println(descStyle.Render(d.Meta.Description))
 		fmt.Println(metaStyle.Render(fmt.Sprintf(
 			"  %d cards | %s | %s",
