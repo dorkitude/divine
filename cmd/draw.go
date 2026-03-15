@@ -60,9 +60,9 @@ func runDraw(cmd *cobra.Command, args []string) error {
 		if len(filtered) == 0 {
 			fmt.Fprintf(os.Stderr, "Unknown deck %q. Available decks:\n", drawDeck)
 			for _, d := range decks {
-				fmt.Fprintf(os.Stderr, "  - %s (%s)\n", d.DirName, d.Meta.Name)
+				fmt.Fprintf(os.Stderr, "  %s: %s\n", d.DirName, d.Meta.Name)
 			}
-			return fmt.Errorf("deck not found")
+			return fmt.Errorf("deck not found: %q", drawDeck)
 		}
 		decks = filtered
 	}
